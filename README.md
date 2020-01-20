@@ -1,4 +1,6 @@
 # LoomX
+[![npm version](https://badge.fury.io/js/%40web3-guru%2Floom-x.svg)](https://badge.fury.io/js/%40web3-guru%2Floom-x)
+
 Extended JS library for Loom Network.
 
 ## Why LoomX?
