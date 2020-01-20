@@ -1,0 +1,28 @@
+module.exports = {
+    src: [
+        './src/LoomX.ts',
+        './src/Address.ts',
+        './src/ERC20Asset.ts',
+        './src/chains/Chain.ts',
+        './src/chains/EthereumChain.ts',
+        './src/chains/LoomChain.ts',
+        './src/network/Network.ts',
+        './src/network/EthereumNetwork.ts',
+        './src/network/LoomNetwork.ts',
+        './src/constants/index.ts',
+        './src/utils/big-number-utils.ts',
+        './src/utils/crypto-utils.ts',
+        './src/utils/ethers-utils.ts',
+    ],
+    mode: 'file',
+    includeDeclarations: true,
+    tsconfig: 'tsconfig.json',
+    out: './docs',
+    excludePrivate: true,
+    excludeProtected: true,
+    excludeExternals: true,
+    readme: 'README.md',
+    name: 'LoomX',
+    ignoreCompilerErrors: true,
+    listInvalidSymbolLinks: true
+};
