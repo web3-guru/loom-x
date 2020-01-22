@@ -70,6 +70,7 @@ class LoomChain implements Chain {
     private mAddress!: Address;
     private mEthAddress?: Address;
     private Eth?: EthCoin;
+    private mAddressMapper?: AddressMapper;
     private mGateway?: TransferGateway;
 
     /**
@@ -123,6 +124,15 @@ class LoomChain implements Chain {
             : EthCoin.createAsync(this.client, this.address).then(eth => {
                   this.Eth = eth;
                   return eth;
+              });
+    };
+
+    public getAddressMapperAsync = () => {
+        return this.mAddressMapper
+            ? Promise.resolve(this.mAddressMapper)
+            : AddressMapper.createAsync(this.client, this.address).then(mapper => {
+                  this.mAddressMapper = mapper;
+                  return mapper;
               });
     };
 
