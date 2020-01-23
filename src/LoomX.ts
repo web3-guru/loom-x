@@ -1,5 +1,5 @@
-import EthereumChain from "./chains/EthereumChain";
-import LoomChain from "./chains/LoomChain";
+import Ethereum from "./chains/Ethereum";
+import Loom from "./chains/Loom";
 import { ethereumPrivateKeyFromMnemonic, loomPrivateKeyFromMnemonic } from "./utils/crypto-utils";
 
 export default class LoomX {
@@ -10,15 +10,15 @@ export default class LoomX {
         return new LoomX(ethereumPrivateKeyFromMnemonic(mnemonic), loomPrivateKeyFromMnemonic(mnemonic));
     }
 
-    public readonly ethereumChain: EthereumChain;
-    public readonly loomChain: LoomChain;
+    public readonly ethereum: Ethereum;
+    public readonly loom: Loom;
 
     /**
      * @param ethereumPrivateKey - Ethereum Private Key (hex)
      * @param loomPrivateKey - Loom Private Key (base64)
      */
     constructor(ethereumPrivateKey: string, loomPrivateKey: string) {
-        this.ethereumChain = new EthereumChain(ethereumPrivateKey);
-        this.loomChain = new LoomChain(loomPrivateKey);
+        this.ethereum = new Ethereum(ethereumPrivateKey);
+        this.loom = new Loom(loomPrivateKey);
     }
 }

@@ -19,7 +19,6 @@ import {
 import { TransferGatewayTokenKind } from "loom-js/dist/proto/transfer_gateway_pb";
 
 import Address from "../Address";
-import EthereumChain from "../chains/EthereumChain";
 import ERC20 from "../contracts/ERC20";
 import ERC20Asset from "../ERC20Asset";
 import LoomNetwork from "../networks/LoomNetwork";
@@ -27,29 +26,30 @@ import { toBigNumber } from "../utils/big-number-utils";
 import { loomPrivateKeyFromMnemonic } from "../utils/crypto-utils";
 
 import Chain from "./Chain";
+import Ethereum from "./Ethereum";
 
-class LoomChain implements Chain {
+class Loom implements Chain {
     /**
-     * Initialize LoomChain with a 12 words seed phrase
+     * Initialize Loom with a 12 words seed phrase
      */
     public static fromMnemonic(mnemonic: string) {
-        return new LoomChain(loomPrivateKeyFromMnemonic(mnemonic));
+        return new Loom(loomPrivateKeyFromMnemonic(mnemonic));
     }
 
     /**
      * @returns `true` if the `ethereumAddress` is mapped with any loom account
      */
     public static hasMapping = async (ethereumAddress: Address) => {
-        const client = LoomChain.newClient();
+        const client = Loom.newClient();
         const addressMapper = await AddressMapper.createAsync(client, ethereumAddress);
         return await addressMapper.hasMappingAsync(ethereumAddress);
     };
 
     /**
-     * @returns mapping from EthereumChain to LoomChain if exists, null otherwise
+     * @returns mapping from Ethereum to Loom if exists, null otherwise
      */
     public static getMapping = async (ethereumAddress: Address) => {
-        const client = LoomChain.newClient();
+        const client = Loom.newClient();
         const addressMapper = await AddressMapper.createAsync(client, ethereumAddress);
         const mapping = await addressMapper.getMappingAsync(ethereumAddress);
         return mapping ? { ethereumAddress: mapping.from, loomAddress: mapping.to } : null;
@@ -74,17 +74,17 @@ class LoomChain implements Chain {
     private mGateway?: TransferGateway;
 
     /**
-     * @param privateKeyOrEthereumChain If a string is given LoomChain is initialized with the private key,
-     * otherwise it is initialized with EthereumChain's signer and address
-     * @param address If initialized with EthereumChain and `address` is specified, this is used for reading data
+     * @param privateKeyOrEthereum If a string is given Loom is initialized with the private key,
+     * otherwise it is initialized with Ethereum's signer and address
+     * @param address If initialized with Ethereum and `address` is specified, this is used for reading data
      */
-    constructor(privateKeyOrEthereumChain: string | EthereumChain, address?: Address) {
-        if (typeof privateKeyOrEthereumChain === "string") {
-            this.privateKey = privateKeyOrEthereumChain;
-            this.initWithPrivateKey(B64ToUint8Array(privateKeyOrEthereumChain));
+    constructor(privateKeyOrEthereum: string | Ethereum, address?: Address) {
+        if (typeof privateKeyOrEthereum === "string") {
+            this.privateKey = privateKeyOrEthereum;
+            this.initWithPrivateKey(B64ToUint8Array(privateKeyOrEthereum));
         } else {
             this.privateKey = null;
-            this.initWithEthereumChain(privateKeyOrEthereumChain);
+            this.initWithEthereum(privateKeyOrEthereum);
             if (address) {
                 this.mAddress = address;
             }
@@ -110,12 +110,12 @@ class LoomChain implements Chain {
     /**
      * Maps ethereumAddress with loomAddress
      *
-     * @param ethereumChain EthereumChain's address is mapped with LoomChain's address
+     * @param ethereum Ethereum's address is mapped with Loom's address
      */
-    public mapAccounts = async (ethereumChain: EthereumChain) => {
+    public mapAccounts = async (ethereum: Ethereum) => {
         const addressMapper = await AddressMapper.createAsync(this.client, this.address);
-        const signer = new EthersSigner(ethereumChain.signer);
-        await addressMapper.addIdentityMappingAsync(ethereumChain.address, this.address, signer);
+        const signer = new EthersSigner(ethereum.signer);
+        await addressMapper.addIdentityMappingAsync(ethereum.address, this.address, signer);
     };
 
     public getETHAsync = () => {
@@ -242,7 +242,7 @@ class LoomChain implements Chain {
     };
 
     /**
-     * Withdraw `amount` of ETH to `EthereumChain`.
+     * Withdraw `amount` of ETH to `Ethereum`.
      *
      * @link https://loomx.io/developers/en/transfer-gateway.html
      *
@@ -277,7 +277,7 @@ class LoomChain implements Chain {
     };
 
     /**
-     * Withdraw `amount` of ERC20 to `EthereumChain`.
+     * Withdraw `amount` of ERC20 to `Ethereum`.
      *
      * @link https://loomx.io/developers/en/transfer-gateway.html
      *
@@ -310,7 +310,7 @@ class LoomChain implements Chain {
     };
 
     /**
-     * Withdraw `amount` of ERC20 to `EthereumChain`.
+     * Withdraw `amount` of ERC20 to `Ethereum`.
      *
      * @link https://loomx.io/developers/en/transfer-gateway.html
      *
@@ -338,10 +338,10 @@ class LoomChain implements Chain {
         });
 
     /**
-     * Get a pending ETH withdrawal receipt that has not been processed by `EthereumChain`.
-     * If this returns non-null, you need to submit its signature to `EthereumChain`.
+     * Get a pending ETH withdrawal receipt that has not been processed by `Ethereum`.
+     * If this returns non-null, you need to submit its signature to `Ethereum`.
      *
-     * @param ethereumNonce Nonce from calling `EthereumChain.getWithdrawalNonceAsync`.
+     * @param ethereumNonce Nonce from calling `Ethereum.getWithdrawalNonceAsync`.
      */
     public getPendingETHWithdrawalReceipt = async (ethereumNonce: ethers.utils.BigNumber) => {
         const gateway = await this.getTransferGatewayAsync();
@@ -356,10 +356,10 @@ class LoomChain implements Chain {
     };
 
     /**
-     * Get a pending ERC20 withdrawal receipt that has not been processed by `EthereumChain`.
-     * If this returns non-null, you need to submit its signature to `EthereumChain`.
+     * Get a pending ERC20 withdrawal receipt that has not been processed by `Ethereum`.
+     * If this returns non-null, you need to submit its signature to `Ethereum`.
      *
-     * @param ethereumNonce Nonce from calling `EthereumChain.getWithdrawalNonceAsync`.
+     * @param ethereumNonce Nonce from calling `Ethereum.getWithdrawalNonceAsync`.
      */
     public getPendingERC20WithdrawalReceipt = async (ethereumNonce: ethers.utils.BigNumber) => {
         const gateway = await this.getTransferGatewayAsync();
@@ -376,7 +376,7 @@ class LoomChain implements Chain {
     private initWithPrivateKey = (privateKey: Uint8Array) => {
         const publicKey = publicKeyFromPrivateKey(privateKey);
         this.mAddress = Address.createLoomAddress(LocalAddress.fromPublicKey(publicKey).toChecksumString());
-        this.mClient = LoomChain.newClient();
+        this.mClient = Loom.newClient();
         this.mClient.txMiddleware = [
             new CachedNonceTxMiddleware(this.mAddress, this.mClient),
             new SignedTxMiddleware(privateKey)
@@ -388,17 +388,17 @@ class LoomChain implements Chain {
         );
     };
 
-    private initWithEthereumChain = (chain: EthereumChain) => {
+    private initWithEthereum = (chain: Ethereum) => {
         const dummyPrivateKey = generatePrivateKey();
         const dummyPublicKey = publicKeyFromPrivateKey(dummyPrivateKey);
         this.mAddress = Address.createLoomAddress(LocalAddress.fromPublicKey(dummyPublicKey).toChecksumString());
         this.mEthAddress = chain.address;
-        this.mClient = LoomChain.newClient();
+        this.mClient = Loom.newClient();
         this.mClient.txMiddleware = [
             new CachedNonceTxMiddleware(this.mEthAddress, this.mClient),
             new SignedEthTxMiddleware(chain.signer)
         ];
-        this.mClient.on("end", () => this.initWithEthereumChain(chain));
+        this.mClient.on("end", () => this.initWithEthereum(chain));
         this.mClient.on("error", () => {});
         const loomProvider = new LoomProvider(this.mClient, dummyPrivateKey, () => this.mClient.txMiddleware);
         loomProvider.setMiddlewaresForAddress(this.mEthAddress.toLocalAddressString(), this.mClient.txMiddleware);
@@ -410,4 +410,4 @@ class LoomChain implements Chain {
     };
 }
 
-export default LoomChain;
+export default Loom;

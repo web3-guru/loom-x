@@ -63,9 +63,9 @@ const loomx = LoomX.fromMnemonic("glove amused flock sight want basic course inv
 ### Map accounts
 Your accounts in Ethereum Network and Loom Network must be mapped before deposit/withdrawal of assets.
 ```js
-const mapped = await loomx.loomChain.hasMapping(loomx.ethereumChain.address);
+const mapped = await loomx.loom.hasMapping(loomx.ethereum.address);
 if (!mapped) {
-    await loomx.loomChain.mapAccounts(loomx.ethereumChain.signer, loomx.ethereumChain.address, loomx.loomChain.address);
+    await loomx.loom.mapAccounts(loomx.ethereum.signer, loomx.ethereum.address, loomx.loom.address);
 }
 ```
 
@@ -76,7 +76,7 @@ You can easily deposit ETH and ERC20 assets using LoomX.
 import { BigNumberUtils } from "@web3-guru/loom-x";
 
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 ETH
-const tx = await loomx.ethereumChain.depositETHAsync(amount);
+const tx = await loomx.ethereum.depositETHAsync(amount);
 await tx.wait();
 ```
 #### ERC20
@@ -84,11 +84,11 @@ await tx.wait();
 import { BigNumberUtils } from "@web3-guru/loom-x";
 
 const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
-const gateway = loomx.ethereumChain.getTransferGateway();
+const gateway = loomx.ethereum.getTransferGateway();
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 DAI
-const approveTx = await loomx.ethereumChain.approveERC20Async(asset, gateway.address, amount);
+const approveTx = await loomx.ethereum.approveERC20Async(asset, gateway.address, amount);
 await approveTx.wait();
-const depositTx = await loomx.ethereumChain.depositERC20Async(asset, amount);
+const depositTx = await loomx.ethereum.depositERC20Async(asset, amount);
 await depositTx.wait();
 ```
 
@@ -101,15 +101,15 @@ ETH and ERC20 assets in Loom Network can be withdrawn to Ethereum Network.
 import { BigNumberUtils, Constants } from "@web3-guru/loom-x";
 
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 ETH
-const ethereumGateway = loomx.ethereumChain.getTransferGateway().address;
-const myEthereumAddress = loomx.ethereumChain.getAddress().toLocalAddressString();
+const ethereumGateway = loomx.ethereum.getTransferGateway().address;
+const myEthereumAddress = loomx.ethereum.getAddress().toLocalAddressString();
 // Call to Loom Network
-const tx1 = await loomx.loomChain.withdrawETHAsync(amount, ethereumGateway);
+const tx1 = await loomx.loom.withdrawETHAsync(amount, ethereumGateway);
 await tx1.wait();
 // Listen to the withdrawal signature
-const signature = await loomx.loomChain.listenToTokenWithdrawal(Constants.ZERO_ADDRESS, myEthereumAddress);
+const signature = await loomx.loom.listenToTokenWithdrawal(Constants.ZERO_ADDRESS, myEthereumAddress);
 // Call to Ethereum Network
-const tx2 = await loomx.ethereumChain.withdrawETHAsync(amount, signature);
+const tx2 = await loomx.ethereum.withdrawETHAsync(amount, signature);
 await tx2.wait();
 ```
 #### ERC20
@@ -119,18 +119,18 @@ import { BigNumberUtils } from "@web3-guru/loom-x";
 const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 DAI
 // Call to Loom Network
-const tx1 = await loomx.loomChain.withdrawERC20Async(asset, amount);
+const tx1 = await loomx.loom.withdrawERC20Async(asset, amount);
 await tx1.wait();
 // Listen to the withdrawal signature
-const signature = await loomx.loomChain.listenToTokenWithdrawal(asset.ethereumAddress.toLocalAddressString(), myEthereumAddress);
+const signature = await loomx.loom.listenToTokenWithdrawal(asset.ethereumAddress.toLocalAddressString(), myEthereumAddress);
 // Call to Ethereum Network
-const tx2 = await loomx.ethereumChain.withdrawERC20Async(asset, amount, signature);
+const tx2 = await loomx.ethereum.withdrawERC20Async(asset, amount, signature);
 await tx2.wait();
 ```
-`LoomChain.listenToWithdrawal()` waits for 120 seconds then it times out if no withdrawal signature is generated.
+`Loom.listenToWithdrawal()` waits for 120 seconds then it times out if no withdrawal signature is generated.
 
 ### Handling Pending Withdrawal
-If `LoomChain.listenToWithdrawal()` times out after 120 seconds or you couldn't properly withdraw your assets, your withdrawal will be in pending state so you need to handle this manually. 
+If `Loom.listenToWithdrawal()` times out after 120 seconds or you couldn't properly withdraw your assets, your withdrawal will be in pending state so you need to handle this manually. 
 
 #### ETH
 ```js
@@ -138,12 +138,12 @@ import { BigNumberUtils } from "@web3-guru/loom-x";
 import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
 
 // Check if you have a pending receipt
-const nonce = await loomx.ethereumChain.getWithdrawalNonceAsync();
+const nonce = await loomx.ethereum.getWithdrawalNonceAsync();
 if (nonce) {
     // Get pending withdrawal receipt with the nonce
     const receipt = await loomx.getPendingETHWithdrawalReceipt(nonce);
     // Withdraw pending ETH
-    const tx = await ethereumChain.withdrawETHAsync(
+    const tx = await ethereum.withdrawETHAsync(
         BigNumberUtils.toBigNumber(receipt.tokenAmount.toString()),
         bytesToHexAddr(receipt.oracleSignature)
     );
@@ -157,13 +157,13 @@ import { BigNumberUtils } from "@web3-guru/loom-x";
 import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
 
 // Check if you have a pending receipt
-const nonce = await loomx.ethereumChain.getWithdrawalNonceAsync();
+const nonce = await loomx.ethereum.getWithdrawalNonceAsync();
 if (nonce) {
     const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
     // Get pending withdrawal receipt with the nonce
     const receipt = await loomx.getPendingERC20WithdrawalReceipt(nonce);
     // Withdraw pending ERC20
-    const tx = await ethereumChain.withdrawERC20Async(
+    const tx = await ethereum.withdrawERC20Async(
         asset,
         BigNumberUtils.toBigNumber(receipt.tokenAmount.toString()),
         bytesToHexAddr(receipt.oracleSignature)

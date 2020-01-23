@@ -1,4 +1,4 @@
 import Chain from "./Chain";
-import EthereumChain, { ERC20Received, ERC20Withdrawn, ETHReceived, ETHWithdrawn, MetaMask } from "./EthereumChain";
-import LoomChain from "./LoomChain";
-export { Chain, EthereumChain, LoomChain, ERC20Received, ERC20Withdrawn, ETHReceived, ETHWithdrawn, MetaMask };
+import Ethereum, { ERC20Received, ERC20Withdrawn, ETHReceived, ETHWithdrawn, MetaMask } from "./Ethereum";
+import Loom from "./Loom";
+export { Chain, Ethereum, Loom, ERC20Received, ERC20Withdrawn, ETHReceived, ETHWithdrawn, MetaMask };
