@@ -23,7 +23,7 @@ npm install @web3-guru/loom-x.js
 ### Selecting network
 First of all, you need to select which network to use for both Ethereum and Loom Network
 ```js
-import { EthereumNetwork, LoomNetwork } from "@web3-guru/loom-x";
+import { EthereumNetwork, LoomNetwork } from "@web3-guru/loom-x/dist";
 
 EthereumNetwork.setCurrent(EthereumNetwork.mainnet);
 // or
@@ -38,7 +38,7 @@ LoomNetwork.setCurrent(LoomNetwork.extdev); // testnet
 ### Create private keys
 You need to create private keys for both Ethereum Network and Loom Network.
 ```js
-import { CryptoUtils } from "@web3-guru/loom-x";
+import { CryptoUtils } from "@web3-guru/loom-x/dist";
 
 const ethereumPrivateKey = CryptoUtils.createEthereumPrivateKey();
 // save your ethereum private key
@@ -49,13 +49,13 @@ const loomPrivateKey = CryptoUtils.createLoomPrivateKey();
 ### Create LoomX
 If you have private keys, you can create an LoomX.
 ```js
-import LoomX from "@web3-guru/loom-x";
+import LoomX from "@web3-guru/loom-x/dist";
 
 const loomx = new LoomX(ethereumPrivateKey, loomPrivateKey);
 ```
 or, you can create LoomX using 12-words mnemonic.
 ```js
-import LoomX from "@web3-guru/loom-x";
+import LoomX from "@web3-guru/loom-x/dist";
 
 const loomx = LoomX.fromMnemonic("glove amused flock sight want basic course invite chase paper crater defense"); // example mnemonic
 ```
@@ -69,11 +69,26 @@ if (!mapped) {
 }
 ```
 
+### Map contracts
+ERC20/ERC721 contracts must be mapped prior to using them.
+```js
+import { Address } from "@web3-guru/loom-x/dist";
+
+// Your contract address on Ethereum
+const ethereumAddress = Address.createEthereumAddress("0x...");
+// Tx hash used when deploying your contract on Ethereum
+const ethereumTxHash = "0x...";
+// Your contract address on Loom
+const loomAddress = Address.createLoomAddress("0x...");
+
+await loomx.loom.mapContracts(loomx.ethereum, ethereumAddress, ethereumTxHash, loomAddress);
+```
+
 ### Deposit ETH/ERC20
 You can easily deposit ETH and ERC20 assets using LoomX.
 #### ETH
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x";
+import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 ETH
 const tx = await loomx.ethereum.depositETHAsync(amount);
@@ -81,7 +96,7 @@ await tx.wait();
 ```
 #### ERC20
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x";
+import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 
 const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
 const gateway = loomx.ethereum.getTransferGateway();
@@ -98,7 +113,7 @@ After **10 blocks** of confirmation, [transfer gateway](https://loomx.io/develop
 ETH and ERC20 assets in Loom Network can be withdrawn to Ethereum Network.
 #### ETH
 ```js
-import { BigNumberUtils, Constants } from "@web3-guru/loom-x";
+import { BigNumberUtils, Constants } from "@web3-guru/loom-x/dist";
 
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 ETH
 const ethereumGateway = loomx.ethereum.getTransferGateway().address;
@@ -114,7 +129,7 @@ await tx2.wait();
 ```
 #### ERC20
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x";
+import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 
 const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 DAI
@@ -134,7 +149,7 @@ If `Loom.listenToWithdrawal()` times out after 120 seconds or you couldn't prope
 
 #### ETH
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x";
+import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
 
 // Check if you have a pending receipt
@@ -153,7 +168,7 @@ if (nonce) {
 
 #### ERC20
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x";
+import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
 
 // Check if you have a pending receipt

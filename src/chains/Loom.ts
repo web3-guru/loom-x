@@ -7,7 +7,8 @@ import {
     LocalAddress,
     LoomProvider,
     SignedEthTxMiddleware,
-    SignedTxMiddleware
+    SignedTxMiddleware,
+    soliditySha3
 } from "loom-js/dist";
 import { AddressMapper, EthCoin, TransferGateway } from "loom-js/dist/contracts";
 import {
@@ -116,6 +117,36 @@ class Loom implements Chain {
         const addressMapper = await AddressMapper.createAsync(this.client, this.address);
         const signer = new EthersSigner(ethereum.signer);
         await addressMapper.addIdentityMappingAsync(ethereum.address, this.address, signer);
+    };
+
+    /**
+     * Maps contracts on Ethereum and Loom
+     *
+     * @param ethereum Ethereum
+     * @param ethereumContract Address of your contract deployed on Ethereum
+     * @param ethereumContractTxHash Tx hash of your contract when deployed on Ethereum
+     * @param loomContract Address of your contract deployed on Loom
+     */
+    public mapContracts = async (
+        ethereum: Ethereum,
+        ethereumContract: Address,
+        ethereumContractTxHash: string,
+        loomContract: Address
+    ) => {
+        const transferGateway = await TransferGateway.createAsync(this.client, this.address);
+        const hash = soliditySha3(
+            { type: "address", value: ethereumContract.toLocalAddressString().slice(2) },
+            { type: "address", value: loomContract.toLocalAddressString().slice(2) }
+        );
+        const signer = new EthersSigner(ethereum.signer);
+        const foreignContractCreatorSig = await signer.signAsync(hash);
+        const foreignContractCreatorTxHash = Buffer.from(ethereumContractTxHash.slice(2), "hex");
+        await transferGateway.addContractMappingAsync({
+            foreignContract: ethereumContract,
+            localContract: loomContract,
+            foreignContractCreatorSig,
+            foreignContractCreatorTxHash
+        });
     };
 
     public getETHAsync = () => {
