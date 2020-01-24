@@ -21,7 +21,6 @@ import { TransferGatewayTokenKind } from "loom-js/dist/proto/transfer_gateway_pb
 
 import Address from "../Address";
 import ERC20 from "../contracts/ERC20";
-import ERC20Asset from "../ERC20Asset";
 import LoomNetwork from "../networks/LoomNetwork";
 import { toBigNumber } from "../utils/big-number-utils";
 import { loomPrivateKeyFromMnemonic } from "../utils/crypto-utils";
@@ -176,19 +175,19 @@ class Loom implements Chain {
               });
     };
 
-    public createERC20 = (asset: ERC20Asset) => {
-        return new ERC20(asset.loomAddress.toLocalAddressString(), this.signer);
+    public createERC20 = (address: Address) => {
+        return new ERC20(address.toLocalAddressString(), this.signer);
     };
 
     public updateAssetBalancesAsync = (
-        assets: ERC20Asset[],
+        assetAddresses: Address[],
         updateBalance: (address: Address, balance: ethers.utils.BigNumber) => void
     ) => {
         return Promise.all(
-            assets.map(asset => {
-                const promise = asset.loomAddress.isZero() ? this.balanceOfETHAsync() : this.balanceOfERC20Async(asset);
+            assetAddresses.map(address => {
+                const promise = address.isZero() ? this.balanceOfETHAsync() : this.balanceOfERC20Async(address);
                 return promise.then(balance => {
-                    updateBalance(asset.loomAddress, balance);
+                    updateBalance(address, balance);
                 });
             })
         );
@@ -250,25 +249,25 @@ class Loom implements Chain {
     };
 
     public transferERC20Async = (
-        asset: ERC20Asset,
+        assetAddress: Address,
         to: string,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
-        const erc20 = this.createERC20(asset);
+        const erc20 = this.createERC20(assetAddress);
         return erc20.transfer(to, amount, { gasLimit: 0 });
     };
 
-    public balanceOfERC20Async = (asset: ERC20Asset): Promise<ethers.utils.BigNumber> => {
-        const erc20 = new ERC20(asset.loomAddress.toLocalAddressString(), this.signer);
+    public balanceOfERC20Async = (assetAddress: Address): Promise<ethers.utils.BigNumber> => {
+        const erc20 = new ERC20(assetAddress.toLocalAddressString(), this.signer);
         return erc20.balanceOf(this.mAddress.toLocalAddressString());
     };
 
     public approveERC20Async = (
-        asset: ERC20Asset,
+        assetAddress: Address,
         spender: string,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
-        const erc20 = new ERC20(asset.loomAddress.toLocalAddressString(), this.signer);
+        const erc20 = new ERC20(assetAddress.toLocalAddressString(), this.signer);
         return erc20.approve(spender, amount, { gasLimit: 0 });
     };
 
@@ -312,11 +311,11 @@ class Loom implements Chain {
      *
      * @link https://loomx.io/developers/en/transfer-gateway.html
      *
-     * @param asset
+     * @param assetAddress
      * @param amount
      */
     public withdrawERC20Async = (
-        asset: ERC20Asset,
+        assetAddress: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         return this.getTransferGatewayAsync().then(gateway => {
@@ -332,7 +331,7 @@ class Loom implements Chain {
                 value: toBigNumber(0),
                 chainId: Number(LoomNetwork.current().chainId),
                 wait: () => {
-                    return gateway.withdrawERC20Async(new BN(amount.toString()), asset.loomAddress).then(() => {
+                    return gateway.withdrawERC20Async(new BN(amount.toString()), assetAddress).then(() => {
                         return { byzantium: true };
                     });
                 }

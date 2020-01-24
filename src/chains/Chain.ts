@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 
 import Address from "../Address";
-import ERC20Asset from "../ERC20Asset";
 import Network from "../networks/Network";
 
 interface Chain {
@@ -40,12 +39,12 @@ interface Chain {
     /**
      * Retrieve my balance of `asset`.
      */
-    balanceOfERC20Async: (asset: ERC20Asset) => Promise<ethers.utils.BigNumber>;
+    balanceOfERC20Async: (assetAddress: Address) => Promise<ethers.utils.BigNumber>;
     /**
      * Transfer an `amount` of my `asset` to `to`.
      */
     transferERC20Async: (
-        asset: ERC20Asset,
+        assetAddress: Address,
         to: string,
         amount: ethers.utils.BigNumber
     ) => Promise<ethers.providers.TransactionResponse>;
@@ -53,15 +52,15 @@ interface Chain {
      * Approve `spender` to use an `amount` of my `asset`.
      */
     approveERC20Async: (
-        asset: ERC20Asset,
+        assetAddress: Address,
         spender: string,
         amount: ethers.utils.BigNumber
     ) => Promise<ethers.providers.TransactionResponse>;
     /**
-     * Update my balances of `assets` by calling `updateBalance`.
+     * Update my balances of `assetAddresses` by calling `updateBalance`.
      */
     updateAssetBalancesAsync: (
-        assets: ERC20Asset[],
+        assetsAddresses: Address[],
         updateBalance: (address: Address, balance: ethers.utils.BigNumber) => void
     ) => Promise<void[]>;
 }
