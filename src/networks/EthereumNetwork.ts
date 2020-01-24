@@ -27,7 +27,7 @@ class EthereumNetwork implements Network {
     constructor({ chainId, networkName }: { chainId: string; networkName: string }) {
         this.chainId = chainId;
         this.networkName = networkName;
-        this.gateway = require("../contracts/networks/TransferGateway.json")[this.chainId];
+        this.gateway = require("../contracts/networks/EthereumTransferGateway.json")[this.chainId];
     }
 }
 export default EthereumNetwork;

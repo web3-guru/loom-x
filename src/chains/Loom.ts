@@ -21,6 +21,7 @@ import { TransferGatewayTokenKind } from "loom-js/dist/proto/transfer_gateway_pb
 
 import Address from "../Address";
 import ERC20 from "../contracts/ERC20";
+import EthereumTransferGateway from "../contracts/EthereumTransferGateway";
 import LoomNetwork from "../networks/LoomNetwork";
 import { toBigNumber } from "../utils/big-number-utils";
 import { loomPrivateKeyFromMnemonic } from "../utils/crypto-utils";
@@ -199,7 +200,7 @@ class Loom implements Chain {
     };
 
     public transferETHAsync = (
-        to: string,
+        to: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         return this.getETHAsync().then(eth => {
@@ -215,7 +216,7 @@ class Loom implements Chain {
                 value: amount,
                 chainId: Number(LoomNetwork.current().chainId),
                 wait: () => {
-                    return eth.transferAsync(Address.createLoomAddress(to), new BN(amount.toString())).then(() => {
+                    return eth.transferAsync(to, new BN(amount.toString())).then(() => {
                         return { byzantium: true };
                     });
                 }
@@ -224,7 +225,7 @@ class Loom implements Chain {
     };
 
     public approveETHAsync = async (
-        spender: string,
+        spender: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         return this.getETHAsync().then(eth => {
@@ -240,7 +241,7 @@ class Loom implements Chain {
                 value: toBigNumber(0),
                 chainId: Number(LoomNetwork.current().chainId),
                 wait: () => {
-                    return eth.approveAsync(Address.createLoomAddress(spender), new BN(amount.toString())).then(() => {
+                    return eth.approveAsync(spender, new BN(amount.toString())).then(() => {
                         return { byzantium: true };
                     });
                 }
@@ -250,25 +251,25 @@ class Loom implements Chain {
 
     public transferERC20Async = (
         assetAddress: Address,
-        to: string,
+        to: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         const erc20 = this.createERC20(assetAddress);
-        return erc20.transfer(to, amount, { gasLimit: 0 });
+        return erc20.transfer(to.toLocalAddressString(), amount, { gasLimit: 0 });
     };
 
     public balanceOfERC20Async = (assetAddress: Address): Promise<ethers.utils.BigNumber> => {
-        const erc20 = new ERC20(assetAddress.toLocalAddressString(), this.signer);
+        const erc20 = this.createERC20(assetAddress);
         return erc20.balanceOf(this.mAddress.toLocalAddressString());
     };
 
     public approveERC20Async = (
         assetAddress: Address,
-        spender: string,
+        spender: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
-        const erc20 = new ERC20(assetAddress.toLocalAddressString(), this.signer);
-        return erc20.approve(spender, amount, { gasLimit: 0 });
+        const erc20 = this.createERC20(assetAddress);
+        return erc20.approve(spender.toLocalAddressString(), amount, { gasLimit: 0 });
     };
 
     /**
@@ -277,11 +278,11 @@ class Loom implements Chain {
      * @link https://loomx.io/developers/en/transfer-gateway.html
      *
      * @param amount
-     * @param ethereumGateway Address of ethereum gateway
+     * @param ethereumGateway
      */
     public withdrawETHAsync = (
         amount: ethers.utils.BigNumber,
-        ethereumGateway: string
+        ethereumGateway: EthereumTransferGateway
     ): Promise<ethers.providers.TransactionResponse> => {
         return this.getTransferGatewayAsync().then(gateway => {
             return {
@@ -297,7 +298,10 @@ class Loom implements Chain {
                 chainId: Number(LoomNetwork.current().chainId),
                 wait: () => {
                     return gateway
-                        .withdrawETHAsync(new BN(amount.toString()), Address.createEthereumAddress(ethereumGateway))
+                        .withdrawETHAsync(
+                            new BN(amount.toString()),
+                            Address.createEthereumAddress(ethereumGateway.address)
+                        )
                         .then(() => {
                             return { byzantium: true };
                         });
@@ -347,7 +351,7 @@ class Loom implements Chain {
      * @param assetAddress Address of ethereum asset contract. If asset is ETH, it should be 0x00000000000000000000.
      * @param ownerAddress Address of ethereum asset owner.
      */
-    public listenToTokenWithdrawal = (assetAddress: string, ownerAddress: string): Promise<string> =>
+    public listenToTokenWithdrawal = (assetAddress: Address, ownerAddress: Address): Promise<string> =>
         new Promise((resolve, reject) => {
             this.getTransferGatewayAsync().then(gateway => {
                 const timer = setTimeout(
@@ -355,10 +359,7 @@ class Loom implements Chain {
                     120000
                 );
                 gateway.on(TransferGateway.EVENT_TOKEN_WITHDRAWAL, event => {
-                    if (
-                        event.tokenContract.equals(Address.createEthereumAddress(assetAddress)) &&
-                        event.tokenOwner.equals(Address.createEthereumAddress(ownerAddress))
-                    ) {
+                    if (event.tokenContract.equals(assetAddress) && event.tokenOwner.equals(ownerAddress)) {
                         clearTimeout(timer);
                         gateway.removeAllListeners(TransferGateway.EVENT_TOKEN_WITHDRAWAL);
                         resolve(bytesToHexAddr(event.sig));

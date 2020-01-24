@@ -31,11 +31,14 @@ interface Chain {
     /**
      * Transfer an `amount` of my ETH to `to`.
      */
-    transferETHAsync: (to: string, amount: ethers.utils.BigNumber) => Promise<ethers.providers.TransactionResponse>;
+    transferETHAsync: (to: Address, amount: ethers.utils.BigNumber) => Promise<ethers.providers.TransactionResponse>;
     /**
      * Approve `spender` to use an `amount` of my ETH.
      */
-    approveETHAsync: (spender: string, amount: ethers.utils.BigNumber) => Promise<ethers.providers.TransactionResponse>;
+    approveETHAsync: (
+        spender: Address,
+        amount: ethers.utils.BigNumber
+    ) => Promise<ethers.providers.TransactionResponse>;
     /**
      * Retrieve my balance of `asset`.
      */
@@ -45,7 +48,7 @@ interface Chain {
      */
     transferERC20Async: (
         assetAddress: Address,
-        to: string,
+        to: Address,
         amount: ethers.utils.BigNumber
     ) => Promise<ethers.providers.TransactionResponse>;
     /**
@@ -53,7 +56,7 @@ interface Chain {
      */
     approveERC20Async: (
         assetAddress: Address,
-        spender: string,
+        spender: Address,
         amount: ethers.utils.BigNumber
     ) => Promise<ethers.providers.TransactionResponse>;
     /**

@@ -96,14 +96,14 @@ await tx.wait();
 ```
 #### ERC20
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x/dist";
+import { Address, BigNumberUtils } from "@web3-guru/loom-x/dist";
 
-const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
-const gateway = loomx.ethereum.getTransferGateway();
-const amount = BigNumberUtils.toBigNumber(10**18); // 1 DAI
-const approveTx = await loomx.ethereum.approveERC20Async(asset, gateway.address, amount);
+const assetAddress = Address.createEthereumAddress("0x..."); // ERC20 Address
+const gatewayAddress = Address.createEthereumAddress(loomx.ethereum.getTransferGateway().address);
+const amount = BigNumberUtils.toBigNumber(10**18);
+const approveTx = await loomx.ethereum.approveERC20Async(assetAddress, gatewayAddress, amount);
 await approveTx.wait();
-const depositTx = await loomx.ethereum.depositERC20Async(asset, amount);
+const depositTx = await loomx.ethereum.depositERC20Async(assetAddress, amount);
 await depositTx.wait();
 ```
 
@@ -116,14 +116,18 @@ ETH and ERC20 assets in Loom Network can be withdrawn to Ethereum Network.
 import { BigNumberUtils, Constants } from "@web3-guru/loom-x/dist";
 
 const amount = BigNumberUtils.toBigNumber(10**18); // 1 ETH
-const ethereumGateway = loomx.ethereum.getTransferGateway().address;
-const myEthereumAddress = loomx.ethereum.getAddress().toLocalAddressString();
-// Call to Loom Network
+const ethereumGateway = loomx.ethereum.getTransferGateway();
+const myEthereumAddress = loomx.ethereum.address;
+const assetAddress = Address.createEthereumAddress(Constants.ZERO_ADDRESS); // ERC20 Address
+
+// Send tx to Loom Network
 const tx1 = await loomx.loom.withdrawETHAsync(amount, ethereumGateway);
 await tx1.wait();
+
 // Listen to the withdrawal signature
-const signature = await loomx.loom.listenToTokenWithdrawal(Constants.ZERO_ADDRESS, myEthereumAddress);
-// Call to Ethereum Network
+const signature = await loomx.loom.listenToTokenWithdrawal(assetAddress, myEthereumAddress);
+
+// Send tx to Ethereum Network
 const tx2 = await loomx.ethereum.withdrawETHAsync(amount, signature);
 await tx2.wait();
 ```
@@ -131,15 +135,19 @@ await tx2.wait();
 ```js
 import { BigNumberUtils } from "@web3-guru/loom-x/dist";
 
-const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
-const amount = BigNumberUtils.toBigNumber(10**18); // 1 DAI
-// Call to Loom Network
-const tx1 = await loomx.loom.withdrawERC20Async(asset, amount);
+const assetAddress = Address.createEthereumAddress("0x..."); // ERC20 Address
+const myEthereumAddress = loomx.ethereum.address;
+const amount = BigNumberUtils.toBigNumber(10**18);
+
+// Send tx to Loom Network
+const tx1 = await loomx.loom.withdrawERC20Async(assetAddress, amount);
 await tx1.wait();
+
 // Listen to the withdrawal signature
-const signature = await loomx.loom.listenToTokenWithdrawal(asset.ethereumAddress.toLocalAddressString(), myEthereumAddress);
-// Call to Ethereum Network
-const tx2 = await loomx.ethereum.withdrawERC20Async(asset, amount, signature);
+const signature = await loomx.loom.listenToTokenWithdrawal(assetAddress, myEthereumAddress);
+
+// Send tx to Ethereum Network
+const tx2 = await loomx.ethereum.withdrawERC20Async(assetAddress, amount, signature);
 await tx2.wait();
 ```
 `Loom.listenToWithdrawal()` waits for 120 seconds then it times out if no withdrawal signature is generated.
@@ -174,12 +182,12 @@ import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
 // Check if you have a pending receipt
 const nonce = await loomx.ethereum.getWithdrawalNonceAsync();
 if (nonce) {
-    const asset = new ERC20Asset("DAIToken", "DAI", 18, "0x...", "0x..."); // DAIToken
+    const assetAddress = Address.createEthereumAddress("0x..."); // ERC20 Address
     // Get pending withdrawal receipt with the nonce
     const receipt = await loomx.getPendingERC20WithdrawalReceipt(nonce);
     // Withdraw pending ERC20
     const tx = await ethereum.withdrawERC20Async(
-        asset,
+        assetAddress,
         BigNumberUtils.toBigNumber(receipt.tokenAmount.toString()),
         bytesToHexAddr(receipt.oracleSignature)
     );

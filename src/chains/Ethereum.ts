@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Address from "../Address";
 import { ZERO_ADDRESS } from "../constants";
 import ERC20 from "../contracts/ERC20";
-import TransferGateway from "../contracts/TransferGateway";
+import EthereumTransferGateway from "../contracts/EthereumTransferGateway";
 import EthereumNetwork from "../networks/EthereumNetwork";
 import { toBigNumber } from "../utils/big-number-utils";
 import { ethereumPrivateKeyFromMnemonic } from "../utils/crypto-utils";
@@ -85,7 +85,7 @@ class Ethereum implements Chain {
     }
 
     public getTransferGateway = () => {
-        return TransferGateway.at(this);
+        return EthereumTransferGateway.at(this);
     };
 
     public createERC20 = (address: Address) => {
@@ -106,11 +106,11 @@ class Ethereum implements Chain {
 
     public transferERC20Async = (
         assetAddress: Address,
-        to: string,
+        to: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         const erc20 = this.createERC20(assetAddress);
-        return erc20.transfer(to, amount);
+        return erc20.transfer(to.toLocalAddressString(), amount);
     };
 
     public balanceOfETHAsync = (): Promise<ethers.utils.BigNumber> => {
@@ -118,14 +118,14 @@ class Ethereum implements Chain {
     };
 
     public transferETHAsync = (
-        to: string,
+        to: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
-        return this.signer.sendTransaction({ to, value: amount.toHexString() });
+        return this.signer.sendTransaction({ to: to.toLocalAddressString(), value: amount.toHexString() });
     };
 
     public approveETHAsync = (
-        spender: string,
+        spender: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         return Promise.resolve({
@@ -152,11 +152,11 @@ class Ethereum implements Chain {
 
     public approveERC20Async = (
         assetAddress: Address,
-        spender: string,
+        spender: Address,
         amount: ethers.utils.BigNumber
     ): Promise<ethers.providers.TransactionResponse> => {
         const erc20 = this.createERC20(assetAddress);
-        return erc20.approve(spender, amount);
+        return erc20.approve(spender.toLocalAddressString(), amount);
     };
 
     /**
