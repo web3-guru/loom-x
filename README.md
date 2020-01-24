@@ -63,7 +63,7 @@ const loomx = LoomX.fromMnemonic("glove amused flock sight want basic course inv
 ### Map accounts
 Your accounts in Ethereum Network and Loom Network must be mapped before deposit/withdrawal of assets.
 ```js
-const mapped = await loomx.loom.hasMapping(loomx.ethereum.address);
+const mapped = await loomx.loom.hasAccountMapping(loomx.ethereum.address);
 if (!mapped) {
     await loomx.loom.mapAccounts(loomx.ethereum.signer, loomx.ethereum.address, loomx.loom.address);
 }

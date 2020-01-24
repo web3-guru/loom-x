@@ -40,7 +40,7 @@ class Loom implements Chain {
     /**
      * @returns `true` if the `ethereumAddress` is mapped with any loom account
      */
-    public static hasMapping = async (ethereumAddress: Address) => {
+    public static hasAccountMapping = async (ethereumAddress: Address) => {
         const client = Loom.newClient();
         const addressMapper = await AddressMapper.createAsync(client, ethereumAddress);
         return await addressMapper.hasMappingAsync(ethereumAddress);
@@ -49,7 +49,7 @@ class Loom implements Chain {
     /**
      * @returns mapping from Ethereum to Loom if exists, null otherwise
      */
-    public static getMapping = async (ethereumAddress: Address) => {
+    public static getAccountMapping = async (ethereumAddress: Address) => {
         const client = Loom.newClient();
         const addressMapper = await AddressMapper.createAsync(client, ethereumAddress);
         const mapping = await addressMapper.getMappingAsync(ethereumAddress);
