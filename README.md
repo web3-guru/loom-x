@@ -157,28 +157,21 @@ If `Loom.listenToWithdrawal()` times out after 120 seconds or you couldn't prope
 
 #### ETH
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x/dist";
-import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
-
 // Check if you have a pending receipt
 const nonce = await loomx.ethereum.getWithdrawalNonceAsync();
 if (nonce) {
     // Get pending withdrawal receipt with the nonce
     const receipt = await loomx.getPendingETHWithdrawalReceipt(nonce);
     // Withdraw pending ETH
-    const tx = await ethereum.withdrawETHAsync(
-        BigNumberUtils.toBigNumber(receipt.tokenAmount.toString()),
-        bytesToHexAddr(receipt.oracleSignature)
-    );
-    await tx.wait();
+    const tx = await ethereum.withdrawETHWithReceiptAsync(receipt);
+    if (tx) {
+        await tx.wait();
+    }
 }
 ```
 
 #### ERC20
 ```js
-import { BigNumberUtils } from "@web3-guru/loom-x/dist";
-import { bytesToHexAddr } from "loom-js/dist/crypto-utils";
-
 // Check if you have a pending receipt
 const nonce = await loomx.ethereum.getWithdrawalNonceAsync();
 if (nonce) {
@@ -186,12 +179,10 @@ if (nonce) {
     // Get pending withdrawal receipt with the nonce
     const receipt = await loomx.getPendingERC20WithdrawalReceipt(nonce);
     // Withdraw pending ERC20
-    const tx = await ethereum.withdrawERC20Async(
-        assetAddress,
-        BigNumberUtils.toBigNumber(receipt.tokenAmount.toString()),
-        bytesToHexAddr(receipt.oracleSignature)
-    );
-    await tx.wait();
+    const tx = await ethereum.withdrawERC20WithReceiptAsync(assetAddress, receipt);
+    if (tx) {
+        await tx.wait();
+    }
 }
 ```
 
